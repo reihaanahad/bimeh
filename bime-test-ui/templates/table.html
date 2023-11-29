@@ -1,0 +1,44 @@
+<html>
+
+<head>
+    <style>
+        table,
+        td,
+        th {
+            border: 1px solid;
+            padding: 10px;
+        }
+ 
+        table {
+            text-align: center;
+        }
+    </style>
+</head>
+<table border='1'>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Category</th>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Duration</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in data %}
+      <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>{{ row[4] }}</td>
+        <td>{{ row[5] }}</td>
+        <td>{{ row[6] }}</td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</html>
