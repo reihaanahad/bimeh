@@ -61,7 +61,25 @@ class LoginPage:
 
     def assert_login_wrong_phone_number(self, element_locator, text):
         wait = WebDriverWait(self.driver, 20)
-        element = wait.until(EC.element_to_be_clickable(("xpath", element_locator)))
+        sleep(0.2)
+        element = wait.until(EC.element_to_be_clickable(('xpath', element_locator)))
         e = element.text
         assert text in e
 
+    def assert_login_wrong_password(self, element_locator, text):
+        wait = WebDriverWait(self.driver, 20)
+        sleep(0.2)
+        element = wait.until(EC.element_to_be_clickable(('xpath', element_locator)))
+        e = element.text
+        assert text in e
+
+    def test_pass_type(self, xpath):
+        wait = WebDriverWait(self.driver, 20)
+        check_pass = wait.until(EC.element_to_be_clickable(('xpath', xpath)))
+        assert check_pass.is_displayed(), "Your password is masked!"
+
+    def enter_login_hidden_password(self):
+        wait_until_element_has_an_attribute(self, 'xpath', login_hidden_password)
+
+    def enter_login_link_phone_edit(self):
+        wait_until_element_has_an_attribute(self, 'xpath', login_link_phone_edit)
