@@ -58,7 +58,6 @@ class TestLogin(unittest.TestCase):
         login.assert_login_wrong_phone_number(login_wrong_phone_number, 'نام کاربری نامعتبر ')
         self.tests_texts.append("test")
 
-
     def test04_login(self):
         self.driver.get(url_test)
         login = LoginPage(driver = self.driver)
@@ -69,7 +68,6 @@ class TestLogin(unittest.TestCase):
         login.assert_login_wrong_phone_number(login_wrong_phone_number, 'نام کاربری نامعتبر ')
         self.tests_texts.append("test")
 
-
     def test05_login(self):
         self.driver.get(url_test)
         login = LoginPage(driver = self.driver)
@@ -79,6 +77,63 @@ class TestLogin(unittest.TestCase):
         login.enter_login_check_phone_number()
         login.assert_login_wrong_phone_number(login_verified_phone_number, '09389090359')
         self.tests_texts.append("test")
+
+    def test06_login(self):
+        self.driver.get(url_test)
+        login = LoginPage(driver=self.driver)
+        login.visibility_of_elements(login_link_logo)
+        login.visibility_of_elements(login_link_phone_edit)
+        login.visibility_of_elements(login_link_forget)
+        login.visibility_of_elements(login_link_otp_login)
+        login.visibility_of_elements(login_hidden_password)
+        login.enter_login_password(" ")
+        login.enter_login_password_submit()
+        login.assert_login_wrong_password(login_wrong_password, 'نام کاربری یا رمز عبور اشتباه است')
+
+    def test07_login(self):
+        self.driver.get(url_test)
+        login = LoginPage(driver=self.driver)
+        login.visibility_of_elements(login_link_logo)
+        login.visibility_of_elements(login_link_phone_edit)
+        login.visibility_of_elements(login_link_forget)
+        login.visibility_of_elements(login_link_otp_login)
+        login.visibility_of_elements(login_hidden_password)
+        login.enter_login_password_submit()
+        login.assert_login_wrong_password(login_wrong_password, 'نام کاربری یا رمز عبور اشتباه است')
+
+    def test08_login(self):
+        self.driver.get(url_test)
+        login = LoginPage(driver=self.driver)
+        login.visibility_of_elements(login_link_logo)
+        login.visibility_of_elements(login_link_phone_edit)
+        login.visibility_of_elements(login_link_forget)
+        login.visibility_of_elements(login_link_otp_login)
+        login.visibility_of_elements(login_hidden_password)
+        login.enter_login_password("rahad31*")
+        login.enter_login_password_submit()
+        login.assert_login_wrong_password(login_wrong_password, 'نام کاربری یا رمز عبور اشتباه است')
+
+    def test09_login(self):
+        self.driver.get(url_test)
+        login = LoginPage(driver=self.driver)
+        login.visibility_of_elements(login_link_logo)
+        login.visibility_of_elements(login_link_phone_edit)
+        login.visibility_of_elements(login_link_forget)
+        login.visibility_of_elements(login_link_otp_login)
+        login.visibility_of_elements(login_hidden_password)
+        login.enter_login_password("rahad31*")
+        login.test_pass_type("//*[@type='password']")
+        login.enter_login_hidden_password()
+        login.test_pass_type("//*[@type='text']")
+
+    def test10_login(self):
+        self.driver.get(url_test)
+        login = LoginPage(driver=self.driver)
+        login.enter_login_link_phone_edit()
+        login.visibility_of_elements(login_link_logo)
+        login.visibility_of_elements(login_link_terms)
+        login.visibility_of_elements(login_phone_number)
+        login.enter_login_check_phone_number()
 
 
 
