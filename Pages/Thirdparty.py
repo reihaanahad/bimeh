@@ -1,0 +1,62 @@
+
+import os
+
+from selenium.webdriver import ActionChains
+
+from Locators import *
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from time import sleep
+from selenium.webdriver.common.keys import Keys
+
+
+# import pytesseract
+# from PIL import Image
+
+
+
+
+def wait_until_element_has_an_attribute_and_send_keys(self, element_selector, element_locator, text):
+    wait = WebDriverWait(self.driver, 20)
+    element = wait.until(EC.element_to_be_clickable((element_selector, element_locator)))
+    sleep(1)
+    #ActionChains(self.driver).move_to_element(element).send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).send_keys(text).perform()
+
+    element.click()
+    sleep(0.2)
+    element.send_keys(Keys.CONTROL + "a")
+    sleep(0.2)
+    element.send_keys(Keys.BACKSPACE)
+    sleep(0.2)
+    element.send_keys(text)
+    sleep(0.2)
+
+
+
+
+class ThirdParty:
+    def __init__(self, driver):
+        self.driver = driver
+
+    def click_on_element(self, element_selector, element_locator):
+        wait = WebDriverWait(self.driver, 20)
+        element = wait.until(EC.element_to_be_clickable((element_selector, element_locator)))
+        sleep(0.2)
+        element.click()
+        sleep(0.2)
+
+    def select_from_dropdown(self, element_locator, option_locator):
+        wait = WebDriverWait(self.driver, 20)
+        sleep(1)
+        element = self.driver.find_element('xpath', element_locator)
+        sleep(0.5)
+        element.click()
+        sleep(1)
+        option = wait.until(EC.element_to_be_clickable(('xpath', option_locator)))
+        sleep(0.5)
+        option.click()
+
+    def enter_login_phone_number(self, text):
+        wait_until_element_has_an_attribute_and_send_keys(self, 'xpath', login_phone_number, text)
+
+
