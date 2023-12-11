@@ -1,0 +1,510 @@
+
+from flask import Flask
+from flask import jsonify
+from flask import request
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import sys
+import os
+from argparse import _ActionsContainer
+from tkinter import BROWSE
+from selenium.webdriver.common.by import By
+import time
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.remote.webelement import WebElement
+#email_lib
+import smtplib, ssl
+import img2pdf
+from email.message import EmailMessage
+from email.mime.text import MIMEText
+from email import encoders
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import jdatetime
+from datetime import date
+from selenium.webdriver.firefox.options import Options 
+
+options = Options() 
+options.add_argument("-headless") 
+
+app = Flask(__name__)
+
+
+@app.route('/ui-test/compare-companies', methods=['GET'])
+def get_open():
+    number_m=['01','02','03','04','05','06','07','08','09','10','11','12']
+    text_m=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند']
+    newlist=(list(zip(number_m,text_m)))
+    def date_convert():
+        global gregorian_date
+        d=str(date.today())
+        year=d.split('-')[0]
+        month=d.split('-')[1]
+        day=d.split('-')[2]
+        gregorian_date =  jdatetime.date.fromgregorian(day=int(day) ,month=int(month),year=int(year))
+        return gregorian_date
+    date_convert()
+    d1=str(gregorian_date)
+    year_new=d1.split('-')[0]
+    month_new=d1.split('-')[1]
+    day_new=d1.split('-')[2]
+    my_string = day_new.lstrip('0')
+    year_new=int(year_new)-1
+    def mk_dir(directory):
+        try:
+            parent_dir = "C:/"
+            path = os.path.join(parent_dir, directory) 
+            os.mkdir(path)
+        except:
+            pass
+    def conver_pdf(output_file,file_name):
+        parent_dir = f"C:/{file_name}"
+        image_files = [os.path.join(parent_dir, f) for f in os.listdir(parent_dir) if f.endswith('.png')]
+        with open(f'C:/{output_file}', 'wb') as f:
+            f.write(img2pdf.convert(image_files))
+    mk_dir('bime30')
+    mk_dir('bime50')
+    mk_dir('bime80')
+    mk_dir('bime100')
+    mk_dir('bime120')
+    mk_dir('bime150')
+    mk_dir('bime200')
+    mk_dir('bime240')
+    mk_dir('bime300')
+    mk_dir('bime400')
+    mk_dir('bime600')
+    #bime.com:
+    class ExampleClass:
+        def __init__(self):
+            self.driver = webdriver.Firefox(options=options)
+        def load(self,url):
+            self.driver.get(url)
+        def dropdown(self,IdName,classname,index):
+            time.sleep(2)
+            self.driver.find_element(By.ID,IdName).click()
+            time.sleep(2)
+            classes=self.driver.find_elements(By.CLASS_NAME , classname)
+            time.sleep(2)
+            classes[index].click()
+        def select(self,classname,attribute):
+            time.sleep(2)
+            classes=self.driver.find_elements(By.CSS_SELECTOR,classname)
+            time.sleep(2)
+            for i in classes:
+                if str(i.text)==attribute:
+                    i.click()
+                    break
+        def select_by_xpath(self,xpath,attribute):
+            time.sleep(2)
+            ids=self.driver.find_elements(By.XPATH,xpath)
+            time.sleep(2)
+            for i in ids:
+                if str(i.text)==attribute:
+                    i.click()
+                    break
+
+        def quit(self):
+            self.driver.quit()    
+        def find_element_by_xpath(self,xpath):
+            self.driver.implicitly_wait(30)
+            self.driver.find_element(By.XPATH, xpath).click()
+            time.sleep(2)
+        def find_element_by_class(self,ClassName):
+            time.sleep(2)
+            self.driver.find_element(By.CLASS_NAME, ClassName).click()
+        def find_element_by_Id(self,IdName):
+            time.sleep(2)
+            self.driver.find_element(By.ID, IdName).click()
+        def input(self,IdName,input):
+            time.sleep(2)
+            self.driver.find_element(By.ID,IdName).send_keys(input)
+        def find_elements_by_classes(self,ClassName,index):
+            time.sleep(3)
+            radios=self.driver.find_elements(By.CLASS_NAME ,ClassName)
+            time.sleep(2)
+            radios[index].click()
+        def find_elements_by_xpaths(self,xpath,index):
+            time.sleep(3)
+            radios=self.driver.find_elements(By.XPATH, xpath)
+            time.sleep(1)
+            radios[index].click()
+        def txt_sc(self,xpath,path):
+            self.driver.implicitly_wait(20)
+            txt=self.driver.find_element(By.XPATH,xpath).text
+            time.sleep(1)
+            self.driver.get_full_page_screenshot_as_file(path)
+            return txt
+        def slider(self,n):
+            slider = self.driver.find_element(By.CSS_SELECTOR, "input[type='range']")
+            action = ActionChains(self.driver)
+            action.click_and_hold(slider).move_by_offset(n, 0).release().perform()
+        def scroll_window(self,n):
+            self.driver.execute_script(f"window.scroll(0,{n});")
+        def scroll(self,classname,n):
+            scrolll =self.driver.find_element(By.CLASS_NAME , classname)
+            for i in range(n):
+                self.driver.execute_script("arguments[0].scrollBy(0, 120);", scrolll)
+                time.sleep(1)
+        def inner_html(self,Idname,idpopup,attribute):
+            time.sleep(5)
+            self.driver.find_element(By.ID,Idname).click()
+            time.sleep(2)
+            ul = WebDriverWait(self.driver,100).until(EC.visibility_of_all_elements_located((By.ID,idpopup)))
+            lis = self.driver.find_elements(By.TAG_NAME,'li')
+            text = ''
+            for li in lis:
+                text +='\n'+li.get_attribute('innerHTML')
+            for li in lis:
+                    if li.get_attribute('innerHTML') == attribute:
+                        li.click()
+                        break
+            
+    try:         
+        bime=ExampleClass()
+        bime.load("https://bimeh.com")
+        bime.find_elements_by_classes('newest-bimeh-bar-item',0)
+        try:
+            bime.find_element_by_xpath('//*[@class="ant-btn ant-btn-default btn-text primary-color"]')
+        except:
+            pass
+        bime.dropdown("vehicleCategoryId",'ant-select-item-option-content',0)
+        bime.dropdown("brands",'ant-select-item-option-content',5)
+        bime.dropdown("usingType",'ant-select-item-option-content',15)
+        bime.dropdown("productionYear",'ant-select-item-option-content',20)
+        bime.dropdown("model",'ant-select-item-option-content',30)
+        bime.find_element_by_class("primary-bk-color")
+        bime.dropdown("previousInsuranceStatus",'ant-select-item-option-content',0)
+        bime.find_elements_by_classes("ant-radio",1)
+        bime.dropdown("previousCompany",'ant-select-item-option-content',3)
+        bime.dropdown("previousDuration",'ant-select-item-option-content',14)
+        bime.find_element_by_class("primary-bk-color")
+        bime.dropdown("thirdPartyDiscount",'ant-select-item-option-content',0)
+        bime.dropdown("driverDiscount",'ant-select-item-option-content',10)
+        bime.find_elements_by_xpaths('//input[@class="ant-radio-input"]',1)
+        bime.find_element_by_xpath('//button[@class="ant-btn ant-btn-default btn-filled back-surface-color  primary-bk-color"]')
+        time.sleep(5)
+        bime.find_element_by_xpath("//button[@title='بستن']")
+
+        txt_bime30=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime30/bimedotcom30.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',2)
+        txt_bime50=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime50/bimedotcom50.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',5)
+        txt_bime80=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime80/bimedotcom80.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',7)
+        txt_bime100=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime100/bimedotcom100.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.scroll('rc-virtual-list-holder',2)
+        bime.find_elements_by_classes('ant-select-item-option-content',1)
+        txt_bime120=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime120/bimedotcom120.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',2)
+        txt_bime150=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime150/bimedotcom150.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',3)
+        txt_bime200=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime200/bimedotcom200.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',4)
+        txt_bime240=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime240/bimedotcom240.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',6)
+        txt_bime300=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime300/bimedotcom300.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.find_elements_by_classes('ant-select-item-option-content',9)
+        txt_bime400=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime400/bimedotcom400.png")
+        bime.find_elements_by_classes('ant-select-selection-search-input',0)
+        bime.scroll('rc-virtual-list-holder',5)
+        bime.find_elements_by_classes('ant-select-item-option-content',8)
+        txt_bime600=bime.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price-bold darker-surface-color", " " ))]',"C:/bime600/bimedotcom600.png")
+        bime.quit()
+        txt1=''
+    except:
+        txt1='bimedotcom has failed!'
+    #bimebazar
+    try:
+        bazar=ExampleClass()
+        bazar.load("https://bimebazar.com")
+        bazar.find_elements_by_classes("py4.Box_flex__FLzPU.Box_flx-d-column__kbAsO.Box_flx-jc-space-around___eu_A.Box_flx-ai-center__tmEGA.fd-column.HomePageInsurancesTemplate_btnItem__SxKL8",0)
+        bazar.find_element_by_class("Text_body3__W5wtP.Text_weight-600__vmBk2.Text_blue__bKcEH")
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",1)
+        bazar.scroll("ScrollMenuPicker_options__QGU2k.ScrollMenuPicker_searchableOption__khBnJ",6)
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",16)
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_element_by_Id('policy_status_picker-بله بیمه داشته است.')
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_element_by_xpath('//button[@class=" Button_ButtonRoot__NlC_S Button_btn-primary-contained__6N213 Button_ButtonSize-small__dgIl1   Button_containsIcon__SQZ40 Button_withIcon__F0Qi_    "]')
+        bazar.find_element_by_xpath('//button[@class=" Button_ButtonRoot__NlC_S Button_btn-primary-contained__6N213 Button_ButtonSize-small__dgIl1   Button_containsIcon__SQZ40 Button_withIcon__F0Qi_    "]')
+        bazar.find_element_by_Id('has_ownership_without_sb_change_picker-خیر، تعویض پلاک نداشته است.')
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_elements_by_classes("ScrollMenuPicker_eachOption__0WusC",0)
+        bazar.find_element_by_Id('has_damage_picker-خیر دریافت نکرده‌ام.')
+        time.sleep(10)
+        txt_bazar30=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime30/bimebazar30.png")
+        bazar.slider(100)
+        txt_bazar50=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime50/bimebazar50.png")
+        bazar.slider(80)
+        txt_bazar80=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime80/bimebazar80.png")
+        bazar.slider(40)
+        txt_bazar100=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime100/bimebazar100.png")
+        bazar.slider(20)
+        txt_bazar120=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime120/bimebazar120.png")
+        bazar.slider(0)
+        txt_bazar150=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime150/bimebazar150.png")
+        bazar.slider(-20)
+        txt_bazar200=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime200/bimebazar200.png")
+        bazar.slider(-40)
+        txt_bazar240=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime240/bimebazar240.png")
+        bazar.slider(-60)
+        txt_bazar300=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime300/bimebazar300.png")
+        bazar.slider(-90)
+        txt_bazar400=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime400/bimebazar400.png")
+        bazar.slider(-120)
+        txt_bazar600=bazar.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "Text_heading2__URCwR", " " ))]',"C:/bime600/bimebazar600.png")
+        bazar.quit()
+        txt2=''
+    except:
+        txt2='bimebazar has failed!'
+    #azki:
+    try:
+        azki=ExampleClass()
+        azki.load("https://www.azki.co/")
+        azki.find_element_by_Id('login')
+        azki.input("username","09371624862")
+        azki.find_element_by_Id('checkPhoneNumber')
+        time.sleep(2)
+        azki.input('password',"4321")
+        azki.find_element_by_Id('loginWithPassword')
+        azki.find_element_by_Id('third-party-insurance')
+        time.sleep(2)
+        azki.find_element_by_xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "fs-13", " " ))]')
+        azki.dropdown("vehicle-type-select","MuiButtonBase-root.MuiListItem-root.MuiMenuItem-root.MuiMenuItem-gutters.MuiListItem-gutters.MuiListItem-button",0)
+        azki.dropdown('carType',"MuiAutocomplete-option.AutoComplete_autocomplete__option__1emOT",0)
+        azki.dropdown("vehicleUsage","MuiButtonBase-root.MuiListItem-root.MuiMenuItem-root.MuiMenuItem-gutters.MuiListItem-gutters.MuiListItem-button",0)
+        azki.dropdown("generated-year","MuiButtonBase-root.MuiListItem-root.MuiMenuItem-root.MuiMenuItem-gutters.MuiListItem-gutters.MuiListItem-button",0)
+        azki.inner_html('carModel','carModel-popup','207 صندوقدار')
+        azki.inner_html('prev-insure-company','prev-insure-company-popup','البرز')
+        azki.find_element_by_Id('start-date')
+        azki.select_by_xpath('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-displayBlock", " " ))]',my_string)
+        azki.find_element_by_Id('end-date')
+        azki.find_element_by_Id('day -today ')
+        azki.find_element_by_Id('oldInsureDateButton')
+        azki.find_element_by_Id('SA0122')
+        azki.dropdown('thirdDiscountID','MuiButtonBase-root.MuiListItem-root.MuiMenuItem-root.MuiMenuItem-gutters.MuiListItem-gutters.MuiListItem-button',0)
+        azki.dropdown('driverDiscountID','MuiButtonBase-root.MuiListItem-root.MuiMenuItem-root.MuiMenuItem-gutters.MuiListItem-gutters.MuiListItem-button',0)
+        azki.find_elements_by_xpaths('//*[contains(concat( " ", @class, " " ), concat( " ", "RadioGroup_ovalRadioButton__xPRNy", " " ))]',3)
+        azki.find_element_by_Id('submit')
+        time.sleep(5)
+
+        azki.find_element_by_xpath("//button[@title='بستن']")
+        txt_azki30=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime30/bimeazki30.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',2)
+        azki.scroll_window(0)
+        txt_azki50=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime50/bimeazki50.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',5)
+        azki.scroll_window(0)
+        txt_azki80=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime80/bimeazki80.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',7)
+        azki.scroll_window(0)
+        txt_azki100=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime100/bimeazki100.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',8)
+        azki.scroll_window(0)
+        txt_azki120=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime120/bimeazki120.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',9)
+        azki.scroll_window(0)
+        txt_azki150=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime150/bimeazki150.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',10)
+        azki.scroll_window(0)
+        txt_azki200=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime200/bimeazki200.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',11)
+        azki.scroll_window(0)
+        txt_azki240=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime240/bimeazki240.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',13)
+        azki.scroll_window(0)
+        txt_azki300=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime300/bimeazki300.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',16)
+        azki.scroll_window(0)
+        txt_azki400=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime400/bimeazki400.png")
+        azki.find_elements_by_classes('rc-slider-mark-text',21)
+        azki.scroll_window(0)
+        txt_azki600=azki.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "MuiTypography-h6", " " ))]',"C:/bime600/bimeazki600.png")
+        azki.quit()
+        txt3=''
+    except:
+        txt3='azki has failed!'
+    #itoll
+    try:
+        
+        itoll=ExampleClass()
+        itoll.load("https://itoll.com/insurance/car/third-party")
+        itoll.scroll_window(500)
+        time.sleep(1)
+        
+        itoll.find_element_by_xpath("//button[contains(text(),'کد ملی یا پلاک خودرو یادتان نیست؟')]")
+        itoll.select(".radioTitle",'سواری')
+        itoll.select(".radioTitle",'شخصی')
+        itoll.select(".radioTitle",'پژو')
+        itoll.select(".radioTitle",'207 صندوق‌دار')
+        itoll.select(".radioTitle",'1402 - 2023')
+        itoll.select(".radioTitle",'بیمه امید')
+        itoll.select(".radioTitle",'بدون تخفیف')
+        itoll.select(".radioTitle",'بدون تخفیف')
+        
+        itoll.find_elements_by_xpaths("//div[@class='v-input__slot']",0)
+        itoll.select(".v-list-item__title",my_string)
+        time.sleep(3)
+        itoll.find_elements_by_xpaths("//div[@class='v-input__slot']",1)
+        time.sleep(2)
+        for i in newlist:
+            if i[0]==month_new:
+                a=i[1]
+        itoll.select(".v-list-item__title",a)
+        itoll.find_elements_by_xpaths("//div[@class='v-input__slot']",2)
+        itoll.select(".v-list-item__title",str(year_new))
+        itoll.find_element_by_xpath("//button[@class='confirm']")
+        itoll.find_element_by_xpath("//button[@class='confirm']")
+        itoll.select(".radioTitle",'خیر')
+        itoll.select(".radioTitle",'خیر')
+        time.sleep(10)
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll30=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime30/itoll30.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='12']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll50=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime50/itoll50.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='22']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll80=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime80/itoll80.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='15']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll100=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime100/itoll100.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='35']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll120=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime120/itoll120.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='16']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll150=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime150/itoll150.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='23']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll200=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime200/itoll200.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='34']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll240=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime240/itoll240.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='28']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll300=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime300/itoll300.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='29']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll400=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime400/itoll400.png")
+        itoll.find_element_by_class('close-btn')
+        itoll.find_element_by_xpath("//option[@value='32']")
+        itoll.scroll_window(300)
+        itoll.find_elements_by_classes('show-cash-button-wrapper',0)
+        txt_itoll600=itoll.txt_sc('//*[contains(concat( " ", @class, " " ), concat( " ", "price", " " ))]',"C:/bime600/itoll600.png")
+        itoll.quit()
+        txt4=''
+    except:
+        txt4='itoll has failed!'
+    #sending email---------------------
+    conver_pdf('bime30.pdf','bime30')
+    conver_pdf('bime50.pdf','bime50')
+    conver_pdf('bime80.pdf','bime80')
+    conver_pdf('bime100.pdf','bime100')
+    conver_pdf('bime120.pdf','bime120')
+    conver_pdf('bime150.pdf','bime150')
+    conver_pdf('bime200.pdf','bime200')
+    conver_pdf('bime240.pdf','bime240')
+    conver_pdf('bime300.pdf','bime300')
+    conver_pdf('bime400.pdf','bime400')
+    conver_pdf('bime600.pdf','bime600')
+    def send_mail(subject,body,pdfs):
+        msg = MIMEMultipart()
+        msg['Subject']=subject
+        msg['From']='r.ahadzadeh@sepasholding.com'
+        
+        msg['To']='mohammadtabatabaei06@gmail.com'
+        msg['Cc']=', '.join(['hrl60@yahoo.com', 'Farzadmoallem5@gmail.com','bahmanabadi.s@gmail.com','reihanahad@gmail.com','aminpapi192236@gmail.com'])
+        msg.attach(MIMEText(body, 'plain'))
+
+        for f in pdfs:
+            attachment = open(f, "rb")
+            p = MIMEBase('application', 'octet-stream')
+            p.set_payload((attachment).read())
+            encoders.encode_base64(p)
+            p.add_header('Content-Disposition', f"attachment; filename= {f.split('/')[-1]}")
+            msg.attach(p)
+        s=smtplib.SMTP('192.168.66.120',25)
+        s.login('r.ahadzadeh@sepasholding.com','reyh@neh8186')
+        s.send_message(msg)
+        s.quit()
+    pdfs=["C:/bime30.pdf","C:/bime50.pdf","C:/bime80.pdf","C:/bime100.pdf","C:/bime120.pdf","C:/bime150.pdf",
+        "C:/bime200.pdf","C:/bime240.pdf","C:/bime300.pdf","C:/bime400.pdf","C:/bime600.pdf"]
+    subject='گزارش استعلام قیمت'
+    try:
+        body='''30مبلغ نهایی بیمه دات کام : ''' + txt_bime30 + '''ریال'''+'''\n'''\
+            +''' 30مبلغ نهایی بیمه بازار : '''+ txt_bazar30 +'''تومان'''+'''\n'''\
+            +''' 30مبلغ نهایی ازکی : ''' + txt_azki30 +'''\n'''+''' 30مبلغ نهایی ایتول : '''+ txt_itoll30+'''\n'''\
+            '''50مبلغ نهایی بیمه دات کام : ''' + txt_bime50 + '''ریال'''+'''\n'''\
+            +''' 50مبلغ نهایی بیمه بازار : '''+ txt_bazar50 +'''تومان'''+'''\n'''\
+            +''' 50مبلغ نهایی ازکی : ''' + txt_azki50 +'''\n'''+''' 50مبلغ نهایی ایتول : '''+ txt_itoll50+'''\n'''\
+            '''80مبلغ نهایی بیمه دات کام : ''' + txt_bime80 + '''ریال'''+'''\n'''\
+            +''' 80مبلغ نهایی بیمه بازار : '''+ txt_bazar80 +'''تومان'''+'''\n'''\
+            +''' 80مبلغ نهایی ازکی : ''' + txt_azki80 +'''\n'''+''' 80مبلغ نهایی ایتول : '''+ txt_itoll80+'''\n'''\
+            +'''100مبلغ نهایی بیمه دات کام : ''' + txt_bime100 + '''ریال'''+'''\n'''\
+            +''' 100مبلغ نهایی بیمه بازار : '''+ txt_bazar100 +'''تومان'''+'''\n'''\
+            +''' 100مبلغ نهایی ازکی : ''' + txt_azki100 +'''\n'''+''' 100مبلغ نهایی ایتول : '''+ txt_itoll100+'''\n'''\
+            '''120مبلغ نهایی بیمه دات کام : ''' + txt_bime120 + '''ریال'''+'''\n'''\
+            +''' 120مبلغ نهایی بیمه بازار : '''+ txt_bazar120 +'''تومان'''+'''\n'''\
+            +''' 120مبلغ نهایی ازکی : ''' + txt_azki120 +'''\n'''+''' 120مبلغ نهایی ایتول : '''+ txt_itoll120+'''\n'''\
+            +'''150مبلغ نهایی بیمه دات کام : ''' + txt_bime150 + '''ریال'''+'''\n'''\
+            +''' 150مبلغ نهایی بیمه بازار : '''+ txt_bazar150 +'''تومان'''+'''\n'''\
+            +''' 150مبلغ نهایی ازکی : ''' + txt_azki150 +'''\n'''+''' 150مبلغ نهایی ایتول : '''+ txt_itoll150+'''\n'''\
+            +'''200مبلغ نهایی بیمه دات کام : ''' + txt_bime200 + '''ریال'''+'''\n'''\
+            +''' 200مبلغ نهایی بیمه بازار : '''+ txt_bazar200 +'''تومان'''+'''\n'''\
+            +''' 200 نهایی ازکی : ''' + txt_azki200 +'''\n'''+''' 200مبلغ نهایی ایتول : '''+ txt_itoll200+'''\n'''\
+            +'''240مبلغ نهایی بیمه دات کام : ''' + txt_bime240 + '''ریال'''+'''\n'''\
+            +''' 240 نهایی بیمه بازار : '''+ txt_bazar240 +'''تومان'''+'''\n'''\
+            +''' 240 نهایی ازکی : ''' + txt_azki240+'''\n'''+''' 240 نهایی ایتول : '''+ txt_itoll240+'''\n'''\
+            +'''300 نهایی بیمه دات کام : ''' + txt_bime300 + '''ریال'''+'''\n'''\
+            +''' 300 نهایی بیمه بازار : '''+ txt_bazar300 +'''تومان'''+'''\n'''\
+            +''' 300 نهایی ازکی : ''' + txt_azki300+'''\n'''+''' 300 نهایی ایتول : '''+ txt_itoll300+'''\n'''\
+            +'''400 نهایی بیمه دات کام : ''' + txt_bime400 + '''ریال'''+'''\n'''\
+            +''' 400 نهایی بیمه بازار : '''+ txt_bazar400 +'''تومان'''+'''\n'''\
+            +''' 400 نهایی ازکی : ''' + txt_azki400+'''\n'''+''' 400 نهایی ایتول : '''+ txt_itoll400+'''\n'''\
+            +'''600 نهایی بیمه دات کام : ''' + txt_bime600 + '''ریال'''+'''\n'''\
+            +''' 600 نهایی بیمه بازار : '''+ txt_bazar600 +'''تومان'''+'''\n'''\
+            +''' 600 نهایی ازکی : ''' + txt_azki600+'''\n'''+''' 600 نهایی ایتول : '''+ txt_itoll600
+            
+    except:
+        body=txt1+'''\n'''+txt2+'''\n'''+txt3+'''\n'''+txt4
+
+    send_mail(subject,body,pdfs)
+    print('email sent')
+    data = {'task': 'done'}
+    return jsonify(data),200
+ 
+if __name__ == '__main__':
+    app.run(host='192.168.93.23')
